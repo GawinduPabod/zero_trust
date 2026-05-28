@@ -5,6 +5,7 @@ import sqlite3
 from twilio.rest import Client # අලුත් SMS Library එක
 
 app = Flask(__name__)
+application = app
 app.secret_key = "super_secret_zero_trust_key"
 
 ALLOWED_START_TIME = 8   
@@ -131,3 +132,5 @@ def verify_otp():
 
 if __name__ == '__main__':
     app.run(debug=True)
+
+  
