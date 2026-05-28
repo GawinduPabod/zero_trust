@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Zero Trust - MFA Verification</title>
+    <style>
+        body { font-family: Arial, sans-serif; background: #f4f4f9; display: flex; justify-content: center; align-items: center; height: 100vh; }
+        .login-container { background: white; padding: 30px; border-radius: 8px; box-shadow: 0px 0px 10px rgba(0,0,0,0.1); width: 300px; text-align: center; }
+        input[type="text"] { width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+        button { width: 100%; padding: 10px; background: #28a745; border: none; color: white; border-radius: 4px; cursor: pointer; }
+        button:hover { background: #282188; }
+        .alert { color: #857804; background-color: #fff3cd; padding: 10px; border-radius: 4px; margin-bottom: 15px; font-size: 14px;}
+    </style>
+</head>
+<body>
+
+<div class="login-container">
+    <h2>Security Verification</h2>
+    <div class="alert">
+        ඔබ ලොග් වන්නේ කාර්යාල වේලාවෙන් පරිභාහිරව බැවින්, කරුණාකර OTP කේතය ඇතුළත් කරන්න. (ටර්මිනල් එක බලන්න)
+    </div>
+    <form action="/verify_otp" method="POST">
+        <input type="text" name="otp_code" placeholder="Enter 6-digit OTP" required>
+        <button type="submit">Verify OTP</button>
+    </form>
+</div>
+
+</body>
+</html>
