@@ -1,20 +1,18 @@
+import os
 from flask import Flask, render_template, request, redirect, url_for, session
 from datetime import datetime
 import random
 import sqlite3
-from twilio.rest import Client # අලුත් SMS Library එක
+from twilio.rest import Client
 
 app = Flask(__name__)
 application = app
-app.secret_key = "super_secret_zero_trust_key"
-
-ALLOWED_START_TIME = 8   
-ALLOWED_END_TIME = 18    
+app.secret_key = "Super_secret_zero_trust_key"
 
 # --- Twilio SMS Configuration ---
-TWILIO_ACCOUNT_SID = ""your_twilio_token_here"" # Twilio එකෙන් ලැබෙන SID එක දෙන්න
-TWILIO_AUTH_TOKEN = "b70be66dd704bdff736cf318b01194ec" # Twilio එකෙන් ලැබෙන Token එක දෙන්න
-TWILIO_PHONE_NUMBER = "+13203890929" # Twilio එකෙන් ලැබුණු ෆෝන් නම්බර් එක දෙන්න
+TWILIO_ACCOUNT_SID = "ඔබගේ_SID_එක_මෙහි_ලබාදෙන්න"
+TWILIO_AUTH_TOKEN = os.environ.get('TWILIO_AUTH_TOKEN')
+TWILIO_PHONE_NUMBER = "+123456789" # ඔබේ Twilio අංකය
 
 def send_otp_sms(receiver_number, otp):
     try:
