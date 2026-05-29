@@ -3,7 +3,8 @@ from flask import Flask, render_template, request, redirect, url_for, session
 from datetime import datetime
 import random
 import sqlite3
-from twilio.rest import Client
+import smtplib
+from email.mime.text import MIMEText
 
 app = Flask(__name__)
 application = app
@@ -12,22 +13,27 @@ app.secret_key = "Super_secret_zero_trust_key"
 ALLOWED_START_TIME = 8
 ALLOWED_END_TIME = 18
 
-# --- Twilio SMS Configuration ---
-TWILIO_ACCOUNT_SID = "ඔබගේ_SID_එක_මෙහි_ලබාදෙන්න"
-TWILIO_AUTH_TOKEN = os.environ.get('TWILIO_AUTH_TOKEN')
-TWILIO_PHONE_NUMBER = "+123456789" # ඔබේ Twilio අංකය
+# --- Email Configuration ---
+# Vercel Environment Variables වල SENDER_EMAIL සහ APP_PASSWORD සකස් කරන්න 
+# නැතහොත් කෙලින්ම ඔබේ තොරතුරු මෙතනට ලබාදෙන්න
+SENDER_EMAIL = os.environ.get('SENDER_EMAIL') or "ඔබේ_gmail_ලිපිනය@gmail.com"
+APP_PASSWORD = os.environ.get('APP_PASSWORD') or "ගූගල්_ඇප්_පාස්වර්ඩ්_කේතය"
 
-def send_otp_sms(receiver_number, otp):
+def send_otp_email(receiver_email, otp):
     try:
-        client = Client(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN)
-        message = client.messages.create(
-            body=f"Your Zero Trust Security OTP is: {otp}",
-            from_=TWILIO_PHONE_NUMBER,
-            to=receiver_number
-        )
-        print(f"OTP sent successfully via SMS to {receiver_number}")
+        msg = MIMEText(f"Your Zero Trust Security OTP code is: {otp}\n\nThis code is valid for single use login.")
+        msg['Subject'] = 'Zero Trust Security - OTP Verification'
+        msg['From'] = SENDER_EMAIL
+        msg['To'] = receiver_email
+
+        server = smtplib.SMTP('smtp.gmail.com', 587)
+        server.starttls()
+        server.login(SENDER_EMAIL, APP_PASSWORD)
+        server.sendmail(SENDER_EMAIL, receiver_email, msg.as_string())
+        server.quit()
+        print(f"OTP sent successfully via Email to {receiver_email}")
     except Exception as e:
-        print(f"Error sending SMS: {e}")
+        print(f"Error sending email: {e}")
 
 def get_db_connection():
     # Vercel හි දත්ත ලිවිය හැකි එකම ස්ථානය /tmp ෆෝල්ඩරයයි
@@ -37,10 +43,11 @@ def get_db_connection():
     conn.row_factory = sqlite3.Row
     
     # /tmp ෆෝල්ඩරය මුලින් හිස්ව පවතින බැවින්, අලුතින් Tables නිර්මාණය කිරීම
+    # මෙහි phone_number වෙනුවට email ලෙස වෙනස් කර ඇත
     conn.execute('''
         CREATE TABLE IF NOT EXISTS users (
             username TEXT UNIQUE,
-            phone_number TEXT,
+            email TEXT,
             password TEXT,
             role TEXT,
             known_ip TEXT,
@@ -68,13 +75,13 @@ def log_access(username, ip, device, status):
 
 @app.route('/')
 def home():
-    return render_template('index.html')
+    return render_template('login.html')
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
         username = request.form.get('username')
-        phone_number = request.form.get('phone_number') # ෆෝන් නම්බර් එක ලබාගැනීම
+        email = request.form.get('email') # ඊමේල් ලිපිනය ලබාගැනීම
         password = request.form.get('password')
         role = 'user' 
         user_ip = request.remote_addr
@@ -82,8 +89,8 @@ def register():
 
         conn = get_db_connection()
         try:
-            conn.execute('INSERT INTO users (username, phone_number, password, role, known_ip, known_device) VALUES (?, ?, ?, ?, ?, ?)',
-                         (username, phone_number, password, role, user_ip, user_device))
+            conn.execute('INSERT INTO users (username, email, password, role, known_ip, known_device) VALUES (?, ?, ?, ?, ?, ?)',
+                         (username, email, password, role, user_ip, user_device))
             conn.commit()
             conn.close()
             return "<h1 style='color: green;'>Registration Successful!</h1> <br> <a href='/'>Go to Login</a>"
@@ -125,9 +132,9 @@ def login():
             session['valid_otp'] = generated_otp 
             session['temp_user'] = username
             
-            # SMS එක හරහා OTP යැවීම
-            user_phone = user['phone_number']
-            send_otp_sms(user_phone, generated_otp)
+            # ඊමේල් එක හරහා OTP යැවීම
+            user_email = user['email']
+            send_otp_email(user_email, generated_otp)
             
             return render_template('otp.html') 
             
