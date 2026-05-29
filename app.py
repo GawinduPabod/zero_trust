@@ -30,12 +30,33 @@ def send_otp_sms(receiver_number, otp):
         print(f"Error sending SMS: {e}")
 
 def get_db_connection():
-    # Vercel හි නිවැරදිව file එක සොයාගැනීමට absolute path එකක් සෑදීම
-    base_dir = os.path.abspath(os.path.dirname(__file__))
-    db_path = os.path.join(base_dir, 'database.db')
+    # Vercel හි දත්ත ලිවිය හැකි එකම ස්ථානය /tmp ෆෝල්ඩරයයි
+    db_path = '/tmp/database.db'
     
     conn = sqlite3.connect(db_path)
     conn.row_factory = sqlite3.Row
+    
+    # /tmp ෆෝල්ඩරය මුලින් හිස්ව පවතින බැවින්, අලුතින් Tables නිර්මාණය කිරීම
+    conn.execute('''
+        CREATE TABLE IF NOT EXISTS users (
+            username TEXT UNIQUE,
+            phone_number TEXT,
+            password TEXT,
+            role TEXT,
+            known_ip TEXT,
+            known_device TEXT
+        )
+    ''')
+    conn.execute('''
+        CREATE TABLE IF NOT EXISTS access_logs (
+            username TEXT,
+            ip_address TEXT,
+            device TEXT,
+            status TEXT
+        )
+    ''')
+    conn.commit()
+    
     return conn
 
 def log_access(username, ip, device, status):
