@@ -9,6 +9,9 @@ app = Flask(__name__)
 application = app
 app.secret_key = "Super_secret_zero_trust_key"
 
+ALLOWED_START_TIME = 8
+ALLOWED_END_TIME = 18
+
 # --- Twilio SMS Configuration ---
 TWILIO_ACCOUNT_SID = "ඔබගේ_SID_එක_මෙහි_ලබාදෙන්න"
 TWILIO_AUTH_TOKEN = os.environ.get('TWILIO_AUTH_TOKEN')
@@ -27,7 +30,11 @@ def send_otp_sms(receiver_number, otp):
         print(f"Error sending SMS: {e}")
 
 def get_db_connection():
-    conn = sqlite3.connect('database.db')
+    # Vercel හි නිවැරදිව file එක සොයාගැනීමට absolute path එකක් සෑදීම
+    base_dir = os.path.abspath(os.path.dirname(__file__))
+    db_path = os.path.join(base_dir, 'database.db')
+    
+    conn = sqlite3.connect(db_path)
     conn.row_factory = sqlite3.Row
     return conn
 
@@ -46,7 +53,7 @@ def home():
 def register():
     if request.method == 'POST':
         username = request.form.get('username')
-        phone_number = request.form.get('phone_number')                                                                                # ෆෝන් නම්බර් එක ලබාගැනීම
+        phone_number = request.form.get('phone_number') # ෆෝන් නම්බර් එක ලබාගැනීම
         password = request.form.get('password')
         role = 'user' 
         user_ip = request.remote_addr
@@ -130,5 +137,3 @@ def verify_otp():
 
 if __name__ == '__main__':
     app.run(debug=True)
-
-  
