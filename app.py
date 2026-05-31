@@ -9,8 +9,8 @@ app = Flask(__name__)
 app.secret_key = 'zero_trust_super_secret_key'
 
 # ඔබගේ Gmail සහ App Password එක මෙහි ඇතුළත් කරන්න
-SENDER_EMAIL = "YOUR_EMAIL@gmail.com"
-APP_PASSWORD = "YOUR_APP_PASSWORD"
+SENDER_EMAIL = "gapabod@gmail.com"
+APP_PASSWORD = "euxh igenrqqltudi"
 
 def send_otp_email(receiver_email, otp):
     msg = EmailMessage()
