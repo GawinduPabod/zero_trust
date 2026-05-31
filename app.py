@@ -1,39 +1,31 @@
-import os
-from flask import Flask, render_template, request, redirect, url_for, session
-from datetime import datetime
-import random
+from flask import Flask, render_template, request, redirect, url_for, session, flash
 import sqlite3
+import os
+import random
 import smtplib
-from email.mime.text import MIMEText
+from email.message import EmailMessage
 
 app = Flask(__name__)
-application = app
-app.secret_key = "Super_secret_zero_trust_key"
+app.secret_key = 'zero_trust_super_secret_key' # Session දත්ත සුරක්ෂිත කිරීම සඳහා
 
-ALLOWED_START_TIME = 8
-ALLOWED_END_TIME = 18
-
-# --- Email Configuration ---
-# Vercel Environment Variables වල SENDER_EMAIL සහ APP_PASSWORD සකස් කරන්න 
-# නැතහොත් කෙලින්ම ඔබේ තොරතුරු මෙතනට ලබාදෙන්න
-SENDER_EMAIL = os.environ.get('SENDER_EMAIL') or "ඔබේ_gmail_ලිපිනය@gmail.com"
-APP_PASSWORD = os.environ.get('APP_PASSWORD') or "ගූගල්_ඇප්_පාස්වර්ඩ්_කේතය"
+# ඔබගේ Gmail සහ App Password එක මෙහි ඇතුළත් කරන්න
+SENDER_EMAIL = "gapabod@gmail.com"
+APP_PASSWORD = "euxhigenrqqltudi"
 
 def send_otp_email(receiver_email, otp):
-    try:
-        msg = MIMEText(f"Your Zero Trust Security OTP code is: {otp}\n\nThis code is valid for single use login.")
-        msg['Subject'] = 'Zero Trust Security - OTP Verification'
-        msg['From'] = SENDER_EMAIL
-        msg['To'] = receiver_email
+    msg = EmailMessage()
+    msg['Subject'] = 'Your Zero Trust Security OTP'
+    msg['From'] = SENDER_EMAIL
+    msg['To'] = receiver_email
+    msg.set_content(f"Your Zero Trust Security OTP is: {otp}")
 
-        server = smtplib.SMTP('smtp.gmail.com', 587)
-        server.starttls()
-        server.login(SENDER_EMAIL, APP_PASSWORD)
-        server.sendmail(SENDER_EMAIL, receiver_email, msg.as_string())
-        server.quit()
-        print(f"OTP sent successfully via Email to {receiver_email}")
+    try:
+        with smtplib.SMTP_SSL('smtp.gmail.com', 465) as smtp:
+            smtp.login(SENDER_EMAIL, APP_PASSWORD)
+            smtp.send_message(msg)
+        print(f"OTP Email sent successfully to {receiver_email}")
     except Exception as e:
-        print(f"Error sending email: {e}")
+        print(f"Error sending Email: {e}")
 
 def get_db_connection():
     # Vercel හි දත්ත ලිවිය හැකි එකම ස්ථානය /tmp ෆෝල්ඩරයයි
@@ -42,8 +34,7 @@ def get_db_connection():
     conn = sqlite3.connect(db_path)
     conn.row_factory = sqlite3.Row
     
-    # /tmp ෆෝල්ඩරය මුලින් හිස්ව පවතින බැවින්, අලුතින් Tables නිර්මාණය කිරීම
-    # මෙහි phone_number වෙනුවට email ලෙස වෙනස් කර ඇත
+    # අලුතින් Tables නිර්මාණය කිරීම (phone_number වෙනුවට email යොදා ඇත)
     conn.execute('''
         CREATE TABLE IF NOT EXISTS users (
             username TEXT UNIQUE,
@@ -63,7 +54,6 @@ def get_db_connection():
         )
     ''')
     conn.commit()
-    
     return conn
 
 def log_access(username, ip, device, status):
@@ -75,93 +65,73 @@ def log_access(username, ip, device, status):
 
 @app.route('/')
 def home():
+    # ඔබගේ මුල් පිටුවට අදාළ HTML ගොනුවේ නම මෙහි ලබා දෙන්න (login.html හෝ index.html)
     return render_template('index.html')
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
         username = request.form.get('username')
-        email = request.form.get('email') # ඊමේල් ලිපිනය ලබාගැනීම
+        email = request.form.get('email') # දුරකථන අංකය වෙනුවට ඊමේල් ලිපිනය ලබාගැනීම
         password = request.form.get('password')
-        role = 'user' 
+        role = 'user'
         user_ip = request.remote_addr
         user_device = request.headers.get('User-Agent')
-
+        
+        # දත්ත ගබඩාවේ මෙම පරිශීලකයා දැනටමත් සිටීදැයි පරීක්ෂා කිරීම
         conn = get_db_connection()
-        try:
-            conn.execute('INSERT INTO users (username, email, password, role, known_ip, known_device) VALUES (?, ?, ?, ?, ?, ?)',
-                         (username, email, password, role, user_ip, user_device))
-            conn.commit()
+        existing_user = conn.execute('SELECT * FROM users WHERE username = ?', (username,)).fetchone()
+        
+        if existing_user:
             conn.close()
-            return "<h1 style='color: green;'>Registration Successful!</h1> <br> <a href='/'>Go to Login</a>"
-        except sqlite3.IntegrityError:
-            conn.close()
-            return "<h1 style='color: red;'>Username already exists!</h1>"
-
+            flash('Username already exists! Please try another.')
+            return redirect(url_for('register'))
+            
+        # OTP එකක් ජනනය කිරීම
+        otp = str(random.randint(100000, 999999))
+        
+        # තාවකාලිකව දත්ත session එකේ සුරැකීම
+        session['reg_username'] = username
+        session['reg_email'] = email
+        session['reg_password'] = password
+        session['reg_role'] = role
+        session['reg_ip'] = user_ip
+        session['reg_device'] = user_device
+        session['otp'] = otp
+        
+        # ඊමේල් හරහා OTP එක යැවීම
+        send_otp_email(email, otp)
+        
+        conn.close()
+        # OTP ඇතුළත් කරන පිටුවට යොමු කිරීම (මෙම පිටුව ඔබ සතුව ඇතැයි උපකල්පනය කෙරේ)
+        return redirect(url_for('verify_otp'))
+        
     return render_template('register.html')
 
-@app.route('/login', methods=['POST'])
-def login():
-    username = request.form.get('username')
-    password = request.form.get('password')
-    
-    current_time_obj = datetime.now()
-    current_hour = current_time_obj.hour
-    current_ip = request.remote_addr
-    current_device = request.headers.get('User-Agent')
-    
-    conn = get_db_connection()
-    user = conn.execute('SELECT * FROM users WHERE username = ? AND password = ?', (username, password)).fetchone()
-    conn.close()
-    
-    if user:
-        if user['role'] == 'admin':
-            log_access(username, current_ip, current_device, "SUCCESS_ADMIN")
-            return render_template('dashboard.html', username=username + " (Admin)")
-        
-        is_valid_time = ALLOWED_START_TIME <= current_hour < ALLOWED_END_TIME
-        is_known_ip = (current_ip == user['known_ip'])
-        is_known_device = (current_device == user['known_device'])
-        
-        if is_valid_time and is_known_ip and is_known_device:
-            log_access(username, current_ip, current_device, "SUCCESS_DIRECT")
-            return render_template('dashboard.html', username=username)
-        else:
-            log_access(username, current_ip, current_device, "WARNING_MFA_TRIGGERED")
-            generated_otp = str(random.randint(100000, 999999))
-            session['valid_otp'] = generated_otp 
-            session['temp_user'] = username
-            
-            # ඊමේල් එක හරහා OTP යැවීම
-            user_email = user['email']
-            send_otp_email(user_email, generated_otp)
-            
-            return render_template('otp.html') 
-            
-    else:
-        log_access(username, current_ip, current_device, "FAILED_INVALID_CREDENTIALS")
-        return "<h1 style='color: red;'>Login Failed! Invalid Credentials.</h1>"
-
-@app.route('/verify_otp', methods=['POST'])
+@app.route('/verify_otp', methods=['GET', 'POST'])
 def verify_otp():
-    user_otp = request.form.get('otp_code')
-    valid_otp = session.get('valid_otp')
-    username = session.get('temp_user')
-    current_ip = request.remote_addr
-    current_device = request.headers.get('User-Agent')
-    
-    if user_otp == valid_otp:
-        log_access(username, current_ip, current_device, "SUCCESS_MFA_VERIFIED")
+    if request.method == 'POST':
+        user_otp = request.form.get('otp')
         
-        conn = get_db_connection()
-        conn.execute('UPDATE users SET known_ip = ?, known_device = ? WHERE username = ?', (current_ip, current_device, username))
-        conn.commit()
-        conn.close()
-        
-        return render_template('dashboard.html', username=username)
-    else:
-        log_access(username, current_ip, current_device, "FAILED_INCORRECT_OTP")
-        return "<h1 style='color: red;'>Access Denied! Incorrect OTP.</h1>"
+        if 'otp' in session and user_otp == session['otp']:
+            # OTP නිවැරදි නම්, දත්ත ගබඩාවට පරිශීලකයා ඇතුළත් කිරීම
+            conn = get_db_connection()
+            conn.execute('INSERT INTO users (username, email, password, role, known_ip, known_device) VALUES (?, ?, ?, ?, ?, ?)',
+                         (session['reg_username'], session['reg_email'], session['reg_password'], 
+                          session['reg_role'], session['reg_ip'], session['reg_device']))
+            conn.commit()
+            conn.close()
+            
+            # Session දත්ත මකා දැමීම
+            session.clear()
+            flash('Registration successful! Please login.')
+            return redirect(url_for('home'))
+        else:
+            flash('Invalid OTP. Please try again.')
+            return redirect(url_for('verify_otp'))
+            
+    # otp.html නමින් HTML ගොනුවක් ඔබ සාදා තිබිය යුතුය
+    return render_template('otp.html')
 
 if __name__ == '__main__':
     app.run(debug=True)
