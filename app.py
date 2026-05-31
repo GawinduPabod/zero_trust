@@ -6,11 +6,11 @@ import smtplib
 from email.message import EmailMessage
 
 app = Flask(__name__)
-app.secret_key = 'zero_trust_super_secret_key' # Session දත්ත සුරක්ෂිත කිරීම සඳහා
+app.secret_key = 'zero_trust_super_secret_key'
 
 # ඔබගේ Gmail සහ App Password එක මෙහි ඇතුළත් කරන්න
-SENDER_EMAIL = "gapabod@gmail.com"
-APP_PASSWORD = "euxhigenrqqltudi"
+SENDER_EMAIL = "YOUR_EMAIL@gmail.com"
+APP_PASSWORD = "YOUR_APP_PASSWORD"
 
 def send_otp_email(receiver_email, otp):
     msg = EmailMessage()
@@ -28,13 +28,11 @@ def send_otp_email(receiver_email, otp):
         print(f"Error sending Email: {e}")
 
 def get_db_connection():
-    # Vercel හි දත්ත ලිවිය හැකි එකම ස්ථානය /tmp ෆෝල්ඩරයයි
     db_path = '/tmp/database.db'
     
     conn = sqlite3.connect(db_path)
     conn.row_factory = sqlite3.Row
     
-    # අලුතින් Tables නිර්මාණය කිරීම (phone_number වෙනුවට email යොදා ඇත)
     conn.execute('''
         CREATE TABLE IF NOT EXISTS users (
             username TEXT UNIQUE,
@@ -56,29 +54,20 @@ def get_db_connection():
     conn.commit()
     return conn
 
-def log_access(username, ip, device, status):
-    conn = get_db_connection()
-    conn.execute('INSERT INTO access_logs (username, ip_address, device, status) VALUES (?, ?, ?, ?)',
-                 (username, ip, device, status))
-    conn.commit()
-    conn.close()
-
 @app.route('/')
 def home():
-    # ඔබගේ මුල් පිටුවට අදාළ HTML ගොනුවේ නම මෙහි ලබා දෙන්න (login.html හෝ index.html)
     return render_template('index.html')
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
         username = request.form.get('username')
-        email = request.form.get('email') # දුරකථන අංකය වෙනුවට ඊමේල් ලිපිනය ලබාගැනීම
+        email = request.form.get('email')
         password = request.form.get('password')
         role = 'user'
         user_ip = request.remote_addr
         user_device = request.headers.get('User-Agent')
         
-        # දත්ත ගබඩාවේ මෙම පරිශීලකයා දැනටමත් සිටීදැයි පරීක්ෂා කිරීම
         conn = get_db_connection()
         existing_user = conn.execute('SELECT * FROM users WHERE username = ?', (username,)).fetchone()
         
@@ -87,10 +76,8 @@ def register():
             flash('Username already exists! Please try another.')
             return redirect(url_for('register'))
             
-        # OTP එකක් ජනනය කිරීම
         otp = str(random.randint(100000, 999999))
         
-        # තාවකාලිකව දත්ත session එකේ සුරැකීම
         session['reg_username'] = username
         session['reg_email'] = email
         session['reg_password'] = password
@@ -99,11 +86,9 @@ def register():
         session['reg_device'] = user_device
         session['otp'] = otp
         
-        # ඊමේල් හරහා OTP එක යැවීම
         send_otp_email(email, otp)
         
         conn.close()
-        # OTP ඇතුළත් කරන පිටුවට යොමු කිරීම (මෙම පිටුව ඔබ සතුව ඇතැයි උපකල්පනය කෙරේ)
         return redirect(url_for('verify_otp'))
         
     return render_template('register.html')
@@ -114,7 +99,6 @@ def verify_otp():
         user_otp = request.form.get('otp')
         
         if 'otp' in session and user_otp == session['otp']:
-            # OTP නිවැරදි නම්, දත්ත ගබඩාවට පරිශීලකයා ඇතුළත් කිරීම
             conn = get_db_connection()
             conn.execute('INSERT INTO users (username, email, password, role, known_ip, known_device) VALUES (?, ?, ?, ?, ?, ?)',
                          (session['reg_username'], session['reg_email'], session['reg_password'], 
@@ -122,7 +106,6 @@ def verify_otp():
             conn.commit()
             conn.close()
             
-            # Session දත්ත මකා දැමීම
             session.clear()
             flash('Registration successful! Please login.')
             return redirect(url_for('home'))
@@ -130,8 +113,20 @@ def verify_otp():
             flash('Invalid OTP. Please try again.')
             return redirect(url_for('verify_otp'))
             
-    # otp.html නමින් HTML ගොනුවක් ඔබ සාදා තිබිය යුතුය
     return render_template('otp.html')
+
+@app.route('/resend_otp')
+def resend_otp():
+    if 'reg_email' in session:
+        new_otp = str(random.randint(100000, 999999))
+        session['otp'] = new_otp
+        send_otp_email(session['reg_email'], new_otp)
+        
+        flash('A new OTP has been sent to your email. Please check your Spam folder too.')
+        return redirect(url_for('verify_otp'))
+    else:
+        flash('Session expired. Please register again.')
+        return redirect(url_for('register'))
 
 if __name__ == '__main__':
     app.run(debug=True)
