@@ -75,7 +75,7 @@ def log_access(username, ip, device, status):
 
 @app.route('/')
 def home():
-    return render_template('login.html')
+    return render_template('index.html')
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
