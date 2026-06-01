@@ -2,166 +2,24 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Zero Trust - Verify OTP</title>
+    <title>Multi-Factor Authentication</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap');
-
-        body {
-            font-family: 'Poppins', sans-serif;
-            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-        }
-        .otp-container {
-            background: #ffffff;
-            padding: 40px 30px;
-            border-radius: 16px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-            width: 350px;
-            text-align: center;
-        }
-        h2 {
-            margin-top: 0;
-            margin-bottom: 15px;
-            color: #2c3e50;
-            font-size: 26px;
-            font-weight: 600;
-        }
-        .clock {
-            font-size: 15px;
-            font-weight: 600;
-            color: #0984e3;
-            background-color: #e3f2fd;
-            padding: 6px 16px;
-            border-radius: 20px;
-            display: inline-block;
-            margin-bottom: 20px;
-            letter-spacing: 1px;
-            box-shadow: inset 0 1px 3px rgba(0,0,0,0.05);
-        }
-        p.info-text {
-            color: #636e72;
-            font-size: 13px;
-            margin-bottom: 25px;
-            line-height: 1.6;
-        }
-        p.info-text strong {
-            color: #d63031;
-        }
-        .input-group {
-            margin-bottom: 20px;
-        }
-        input[type="text"] {
-            width: 100%;
-            padding: 14px;
-            border: 2px solid #dfe6e9;
-            border-radius: 8px;
-            box-sizing: border-box;
-            font-size: 20px;
-            letter-spacing: 4px;
-            text-align: center;
-            font-weight: 500;
-            color: #2d3436;
-            transition: all 0.3s ease;
-        }
-        input:focus {
-            border-color: #0984e3;
-            box-shadow: 0 0 0 3px rgba(9, 132, 227, 0.2);
-            outline: none;
-        }
-        button {
-            width: 100%;
-            padding: 14px;
-            background: linear-gradient(135deg, #0984e3, #00cec9);
-            border: none;
-            color: white;
-            border-radius: 8px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: transform 0.2s, box-shadow 0.2s;
-        }
-        button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(9, 132, 227, 0.3);
-        }
-        .resend-link {
-            display: inline-block;
-            margin-top: 25px;
-            font-size: 14px;
-            color: #e17055;
-            text-decoration: none;
-            font-weight: 500;
-            transition: color 0.3s;
-        }
-        .resend-link:hover {
-            color: #d63031;
-            text-decoration: underline;
-        }
-        .flash-message {
-            background-color: #ffeaa7;
-            color: #d35400;
-            padding: 10px;
-            border-radius: 6px;
-            font-size: 13px;
-            margin-bottom: 15px;
-            font-weight: 500;
-        }
+        body { font-family: 'Segoe UI', sans-serif; background: linear-gradient(135deg, #0f172a, #1e293b); display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; color: #f8fafc; }
+        .card { background: #1e293b; padding: 40px; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); width: 340px; text-align: center; border: 1px solid #eab308; }
+        h2 { color: #eab308; margin-bottom: 12px; }
+        p { color: #94a3b8; font-size: 14px; margin-bottom: 24px; line-height: 1.5; }
+        input { width: 100%; padding: 12px; background: #0f172a; border: 1px solid #334155; border-radius: 8px; text-align: center; color: white; font-size: 20px; letter-spacing: 4px; margin-bottom: 20px; }
+        button { width: 100%; padding: 12px; background: #eab308; border: none; color: #0f172a; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; }
     </style>
 </head>
 <body>
-
-<div class="otp-container">
-    <h2>Verify Email</h2>
-    
-    <div class="clock" id="digital-clock">00:00:00 AM</div>
-
-    <p class="info-text">We have sent a 6-digit OTP to your email.<br><strong>(Check your Spam/Junk folder if not found).</strong></p>
-    
-  
-            <div class="flash-messages">
-         HI 
-                <div class="flash-message"></div>
-            
-            </div>
-    
-
+<div class="card">
+    <h2>⚠️ MFA Triggered</h2>
+    <p>You are accessing the network outside standard working hours (8:00 AM - 6:00 PM). A verification token has been sent to your registered Email.</p>
     <form action="/verify_otp" method="POST">
-        <div class="input-group">
-            <input type="text" name="otp" placeholder="Enter OTP" required maxlength="6" pattern="\d{6}">
-        </div>
-        <button type="submit">Verify & Register</button>
+        <input type="text" name="otp_code" placeholder="000000" maxlength="6" required>
+        <button type="submit">Authorize Session</button>
     </form>
-    
-    <a href="/resend_otp" class="resend-link">Didn't receive it? Resend OTP</a>
 </div>
-
-<script>
-    function updateClock() {
-        const now = new Date();
-        let hours = now.getHours();
-        let minutes = now.getMinutes();
-        let seconds = now.getSeconds();
-        const ampm = hours >= 12 ? 'PM' : 'AM';
-        
-        hours = hours % 12;
-        hours = hours ? hours : 12;
-        
-        minutes = minutes < 10 ? '0' + minutes : minutes;
-        seconds = seconds < 10 ? '0' + seconds : seconds;
-        hours = hours < 10 ? '0' + hours : hours;
-        
-        const timeString = hours + ':' + minutes + ':' + seconds + ' ' + ampm;
-        document.getElementById('digital-clock').textContent = timeString;
-    }
-
-    setInterval(updateClock, 1000);
-    updateClock();
-</script>
-
 </body>
 </html>

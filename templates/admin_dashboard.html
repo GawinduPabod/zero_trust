@@ -2,41 +2,109 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Security Admin Panel</title>
+    <title>SIEM Security Operations Center</title>
     <style>
-        body { font-family: Arial, sans-serif; background: #f4f6f9; padding: 20px; }
-        .panel { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th, td { padding: 12px; border: 1px solid #ddd; text-align: left; }
-        th { background: #34495e; color: white; }
-        .btn-approve { background: #2ecc71; color: white; padding: 8px 12px; border: none; border-radius: 4px; text-decoration: none; font-weight: bold; }
-        .btn-approve:hover { background: #27ae60; }
+        body { font-family: 'Segoe UI', sans-serif; background: #0f172a; color: #e2e8f0; margin: 0; padding: 25px; }
+        .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #334155; padding-bottom: 15px; margin-bottom: 25px; }
+        h1 { color: #38bdf8; margin: 0; font-size: 28px; }
+        .grid { display: grid; grid-template-columns: 1fr; gap: 25px; }
+        .panel { background: #1e293b; padding: 20px; border-radius: 12px; border: 1px solid #334155; }
+        h2 { color: #f1f5f9; font-size: 18px; margin-top: 0; margin-bottom: 15px; border-left: 4px solid #38bdf8; padding-left: 10px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #334155; font-size: 14px; }
+        th { background: #0f172a; color: #94a3b8; }
+        .badge { padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; }
+        .success { background: #16a34a; color: white; }
+        .failed { background: #dc2626; color: white; }
+        .warning { background: #ca8a04; color: white; }
+        .btn-approve { background: #0284c7; color: white; padding: 6px 12px; border-radius: 6px; text-decoration: none; font-weight: bold; font-size: 13px; }
+        .btn-approve:hover { background: #0369a1; }
     </style>
 </head>
 <body>
 
-<div class="panel">
-    <h2>🔒 Zero Trust Security Admin Panel - Pending Approvals</h2>
-    <p>The following users tried to log in from an anomaly location or IP. Review and approve to grant access.</p>
-    
-    <table>
-        <tr>
-            <th>Username</th>
-            <th>IP Address</th>
-            <th>Detected Location</th>
-            <th>Action</th>
-        </tr>
-        {% for req in requests %}
-        <tr>
-            <td>{{ req.username }}</td>
-            <td>{{ req.ip_address }}</td>
-            <td>{{ req.location }}</td>
-            <td>
-                <a href="/admin/approve/{{ req.id }}" class="btn-approve">Approve Access</a>
-            </td>
-        </tr>
-        {% endfor %}
-    </table>
+<div class="header">
+    <h1>🛡️ Zero Trust Security Operations Center (SOC)</h1>
+</div>
+
+<div class="grid">
+    <div class="panel">
+        <h2>Anomaly Interceptions (Pending Approvals)</h2>
+        <table>
+            <tr>
+                <th>Subject ID</th>
+                <th>Target IP</th>
+                <th>Geo-Location</th>
+                <th>Timestamp</th>
+                <th>Action</th>
+            </tr>
+            {% for req in approvals %}
+            <tr>
+                <td>{{ req.username }}</td>
+                <td>{{ req.ip_address }}</td>
+                <td>{{ req.location }}</td>
+                <td>{{ req.timestamp }}</td>
+                <td><a href="/admin/approve/{{ req.id }}" class="btn-approve">Authorize Profile</a></td>
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
+
+    <div class="panel">
+        <h2>Identity Directory</h2>
+        <table>
+            <tr>
+                <th>Username</th>
+                <th>Registered Email</th>
+                <th>System Role</th>
+                <th>Security Status</th>
+            </tr>
+            {% for u in users %}
+            <tr>
+                <td>{{ u.username }}</td>
+                <td>{{ u.email }}</td>
+                <td>{{ u.role }}</td>
+                <td>
+                    {% if u.is_locked == 1 %}
+                    <span class="badge failed">LOCKED</span>
+                    {% else %}
+                    <span class="badge success">ACTIVE</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
+
+    <div class="panel">
+        <h2>Live System Security Logs (SIEM Stream)</h2>
+        <table>
+            <tr>
+                <th>Subject ID</th>
+                <th>Origin IP</th>
+                <th>Resolved Location</th>
+                <th>Timestamp</th>
+                <th>Signature Status</th>
+            </tr>
+            {% for log in logs %}
+            <tr>
+                <td>{{ log.username }}</td>
+                <td>{{ log.ip_address }}</td>
+                <td>{{ log.location }}</td>
+                <td>{{ log.timestamp }}</td>
+                <td>
+                    {% if "SUCCESS" in log.status %}
+                    <span class="badge success">{{ log.status }}</span>
+                    {% elif "FAILED" in log.status or "LOCKED" in log.status %}
+                    <span class="badge failed">{{ log.status }}</span>
+                    {% else %}
+                    <span class="badge warning">{{ log.status }}</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
 </div>
 
 </body>

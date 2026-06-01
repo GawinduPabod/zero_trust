@@ -2,30 +2,36 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Zero Trust Secure Login</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zero Trust Gateway - Login</title>
     <style>
-        body { font-family: Arial, sans-serif; background: #f4f4f9; display: flex; justify-content: center; align-items: center; height: 100vh; }
-        .login-container { background: white; padding: 30px; border-radius: 8px; box-shadow: 0px 0px 10px rgba(0,0,0,0.1); width: 300px; }
-        h2 { text-align: center; color: #333; }
-        input[type="text"], input[type="password"] { width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
-        button { width: 100%; padding: 10px; background: #007BFF; border: none; color: white; border-radius: 4px; cursor: pointer; }
-        button:hover { background: #0056b3; }
-        .register-link { display: block; text-align: center; margin-top: 15px; font-size: 14px; text-decoration: none; color: #007BFF; }
-        .register-link:hover { text-decoration: underline; }
+        body { font-family: 'Segoe UI', sans-serif; background: linear-gradient(135deg, #0f172a, #1e293b); display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; color: #f8fafc; }
+        .card { background: #1e293b; padding: 40px; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); width: 340px; border: 1px solid #334155; }
+        h2 { margin-bottom: 24px; font-size: 26px; color: #38bdf8; text-align: center; }
+        .group { text-align: left; margin-bottom: 18px; }
+        label { display: block; margin-bottom: 6px; color: #94a3b8; font-size: 14px; }
+        input { width: 100%; padding: 12px; background: #0f172a; border: 1px solid #334155; border-radius: 8px; box-sizing: border-box; color: #fff; font-size: 15px; }
+        input:focus { border-color: #38bdf8; outline: none; }
+        button { width: 100%; padding: 12px; background: #0284c7; border: none; color: white; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; transition: 0.3s; margin-top: 10px; }
+        button:hover { background: #0369a1; }
+        .link { display: block; margin-top: 20px; text-align: center; font-size: 14px; color: #38bdf8; text-decoration: none; }
     </style>
 </head>
 <body>
-
-<div class="login-container">
-    <h2>Secure Login</h2>
+<div class="card">
+    <h2>🛡️ Secure Gateway</h2>
     <form action="/login" method="POST">
-        <input type="text" name="username" placeholder="Username" required>
-        <input type="password" name="password" placeholder="Password" required>
-        <button type="submit">Login</button>
+        <div class="group">
+            <label>Username</label>
+            <input type="text" name="username" placeholder="Enter identity ID" required>
+        </div>
+        <div class="group">
+            <label>Security Password</label>
+            <input type="password" name="password" placeholder="••••••••" required>
+        </div>
+        <button type="submit">Verify & Authenticate</button>
     </form>
-    
-    <a href="/register" class="register-link">Register a New Account</a>
+    <a href="/register" class="link">Create Shield Identity (Register)</a>
 </div>
-
 </body>
 </html>

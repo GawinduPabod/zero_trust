@@ -3,104 +3,39 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Zero Trust - Register</title>
+    <title>Zero Trust - Create Identity</title>
     <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f4f6f9;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-        }
-        .register-container {
-            background: #ffffff;
-            padding: 40px;
-            border-radius: 12px;
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.05);
-            width: 340px;
-            text-align: center;
-        }
-        h2 {
-            margin-bottom: 24px;
-            color: #2c3e50;
-            font-size: 26px;
-            font-weight: 600;
-        }
-        .input-group {
-            text-align: left;
-            margin-bottom: 18px;
-        }
-        label {
-            display: block;
-            margin-bottom: 6px;
-            color: #7f8c8d;
-            font-size: 14px;
-        }
-        input[type="text"], input[type="email"], input[type="password"] {
-            width: 100%;
-            padding: 12px;
-            border: 1px solid #dcdde1;
-            border-radius: 6px;
-            box-sizing: border-box;
-            font-size: 15px;
-            transition: border-color 0.3s;
-        }
-        input:focus {
-            border-color: #2ecc71;
-            outline: none;
-        }
-        button {
-            width: 100%;
-            padding: 12px;
-            background-color: #2ecc71;
-            border: none;
-            color: white;
-            border-radius: 6px;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: background-color 0.3s;
-            margin-top: 10px;
-        }
-        button:hover {
-            background-color: #27ae60;
-        }
-        .login-link {
-            display: block;
-            margin-top: 20px;
-            font-size: 14px;
-            color: #3498db;
-            text-decoration: none;
-        }
-        .login-link:hover {
-            text-decoration: underline;
-        }
+        body { font-family: 'Segoe UI', sans-serif; background: linear-gradient(135deg, #0f172a, #1e293b); display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; color: #f8fafc; }
+        .card { background: #1e293b; padding: 40px; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); width: 340px; border: 1px solid #334155; }
+        h2 { margin-bottom: 24px; font-size: 26px; color: #4ade80; text-align: center; }
+        .group { text-align: left; margin-bottom: 18px; }
+        label { display: block; margin-bottom: 6px; color: #94a3b8; font-size: 14px; }
+        input { width: 100%; padding: 12px; background: #0f172a; border: 1px solid #334155; border-radius: 8px; box-sizing: border-box; color: #fff; font-size: 15px; }
+        input:focus { border-color: #4ade80; outline: none; }
+        button { width: 100%; padding: 12px; background: #22c55e; border: none; color: white; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; transition: 0.3s; margin-top: 10px; }
+        button:hover { background: #16a34a; }
+        .link { display: block; margin-top: 20px; text-align: center; font-size: 14px; color: #4ade80; text-decoration: none; }
     </style>
 </head>
 <body>
-
-<div class="register-container">
-    <h2>Create Account</h2>
+<div class="card">
+    <h2>🔑 Register Identity</h2>
     <form action="/register" method="POST">
-        <div class="input-group">
+        <div class="group">
             <label>Username</label>
-            <input type="text" name="username" placeholder="Enter your username" required>
+            <input type="text" name="username" placeholder="Create username" required>
         </div>
-        <div class="input-group">
-            <label>Email Address</label>
-            <input type="email" name="email" placeholder="Enter your email" required>
+        <div class="group">
+            <label>Secure Email</label>
+            <input type="email" name="email" placeholder="name@company.com" required>
         </div>
-        <div class="input-group">
-            <label>Password</label>
-            <input type="password" name="password" placeholder="Enter secure password" required>
+        <div class="group">
+            <label>Master Password</label>
+            <input type="password" name="password" placeholder="••••••••" required>
         </div>
-        <button type="submit">Register</button>
+        <button type="submit">Establish Identity</button>
     </form>
-    
-    <a href="/" class="login-link">Already have an account? Login</a>
+    <a href="/" class="link">Back to Core Login</a>
 </div>
-
 </body>
 </html>
