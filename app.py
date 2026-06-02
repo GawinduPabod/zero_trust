@@ -15,8 +15,8 @@ ALLOWED_START_TIME = 8
 ALLOWED_END_TIME = 18
 
 # --- Email Configuration ---
-SENDER_EMAIL = os.environ.get('SENDER_EMAIL') or "your_email@gmail.com"
-APP_PASSWORD = os.environ.get('APP_PASSWORD') or "your_app_password"
+SENDER_EMAIL = os.environ.get('SENDER_EMAIL') or "gapabod@gmail.com"
+APP_PASSWORD = os.environ.get('APP_PASSWORD') or "euxh igen rqql tudi"
 
 def get_location_from_ip(ip):
     try:
